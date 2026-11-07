@@ -1,0 +1,1719 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MTC — Martian Time Calendar</title>
+<style>
+:root {
+  --yellow:#f5cc49;
+  --pale:#fff6d7;
+  --gray:#e4e7ed;
+  --soft:#f7f8fa;
+  --text:#303746;
+  --muted:#8993a3;
+  --blue:#526b8d;
+  --red:#c65e65;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  padding:20px 12px;
+  background:#fff;
+  color:var(--text);
+  font:14px Arial,sans-serif;
+}
+.container {max-width:1050px;margin:auto}
+header {text-align:center;padding:20px 0 26px}
+h1 {font-size:36px;letter-spacing:8px;margin:0}
+.subtitle {
+  color:var(--muted);
+  letter-spacing:3px;
+  font-size:10px;
+  margin-top:9px;
+}
+.tabs {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:7px;
+  margin-bottom:22px;
+}
+button,input,select,textarea {font:inherit}
+button {cursor:pointer}
+.tab,.nav,.primary,.danger {
+  padding:10px 14px;
+  border:1px solid var(--gray);
+  border-radius:9px;
+  background:var(--soft);
+  color:var(--text);
+}
+.tab.active,.primary {
+  background:var(--yellow);
+  border-color:var(--yellow);
+  font-weight:bold;
+}
+.danger {color:var(--red);background:white}
+.small {padding:7px 10px;font-size:12px}
+.panel {
+  border:1px solid var(--gray);
+  border-radius:15px;
+  padding:22px;
+  margin-bottom:18px;
+  background:white;
+}
+.label {
+  color:var(--muted);
+  font-size:11px;
+  letter-spacing:2px;
+  margin-bottom:18px;
+}
+.heading {font-size:22px;font-weight:bold}
+.muted {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6;
+}
+.page {display:none}
+.page.active {display:block}
+.control {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:14px 0;
+}
+.year,.month-name {font-size:21px;font-weight:bold}
+input,select,textarea {
+  width:100%;
+  padding:11px;
+  border:1px solid #dce0e7;
+  border-radius:8px;
+  background:white;
+  color:var(--text);
+  outline-color:var(--yellow);
+}
+input[type="checkbox"] {
+  width:18px;
+  height:18px;
+  accent-color:var(--yellow);
+}
+input[type="color"] {height:44px;padding:4px}
+.month-select {margin:12px 0 18px}
+.calendar {
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:5px;
+  max-width:560px;
+  margin:auto;
+}
+.weekday {
+  text-align:center;
+  padding:8px 0;
+  font-size:10px;
+  color:var(--muted);
+}
+.day {
+  position:relative;
+  height:39px;
+  border:1px solid #edf0f3;
+  border-radius:7px;
+  background:#fafbfc;
+  color:var(--text);
+  font-size:12px;
+}
+.day:hover {background:var(--pale)}
+.day.selected {
+  background:var(--yellow);
+  border-color:#e4b932;
+  font-weight:bold;
+}
+.dots {
+  position:absolute;
+  bottom:3px;
+  left:0;
+  right:0;
+  display:flex;
+  justify-content:center;
+  gap:3px;
+}
+.dot {
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--blue);
+}
+.dot.event {background:#d7a400}
+.day.selected .dot.event {background:white}
+.empty-day {visibility:hidden}
+.form {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin:20px 0;
+}
+.field {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  min-width:0;
+}
+.field label {font-size:12px;color:var(--muted)}
+.wide {grid-column:1/-1}
+.item {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px;
+  margin:9px 0;
+  background:#fafbfc;
+  border:1px solid var(--gray);
+  border-radius:10px;
+}
+.item-body {flex:1;min-width:0;overflow-wrap:anywhere}
+.item-title {font-weight:bold}
+.item-meta {
+  color:var(--blue);
+  font-size:12px;
+  margin-top:6px;
+}
+.item.done .item-title {
+  text-decoration:line-through;
+  color:var(--muted);
+}
+.progress {
+  background:#edf0f3;
+  height:7px;
+  border-radius:10px;
+  overflow:hidden;
+  margin:12px 0;
+}
+.fill {
+  height:100%;
+  width:0;
+  background:var(--yellow);
+}
+.notes {min-height:100px;resize:vertical}
+.empty-text {
+  padding:20px;
+  text-align:center;
+  color:var(--muted);
+  background:var(--soft);
+  border-radius:10px;
+}
+.event-box {
+  background:var(--pale);
+  border:1px solid #f0dfa0;
+  border-radius:10px;
+  padding:12px;
+  margin:10px 0;
+}
+.event-line {padding:5px 0;font-weight:bold}
+.week-scroll {overflow-x:auto}
+.week-grid {
+  display:grid;
+  grid-template-columns:repeat(7,minmax(105px,1fr));
+  gap:7px;
+  min-width:735px;
+}
+.week-column {
+  background:var(--soft);
+  border:1px solid var(--gray);
+  border-radius:10px;
+  padding:8px;
+  min-height:150px;
+}
+.week-title {
+  text-align:center;
+  font-weight:bold;
+  padding:9px 0;
+  border-bottom:1px solid var(--gray);
+  margin-bottom:9px;
+}
+.lesson {
+  background:white;
+  border-left:3px solid var(--yellow);
+  padding:9px;
+  margin-bottom:8px;
+  border-radius:6px;
+  overflow-wrap:anywhere;
+}
+.lesson-time {
+  color:var(--blue);
+  font-size:11px;
+  margin-bottom:6px;
+}
+.lesson button {margin-top:7px}
+.jar-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:15px;
+}
+.jar-card {
+  background:var(--soft);
+  border:1px solid var(--gray);
+  border-radius:14px;
+  padding:18px;
+  text-align:center;
+}
+.jar-name {
+  font-weight:bold;
+  font-size:16px;
+  margin-bottom:15px;
+  overflow-wrap:anywhere;
+}
+.jar-art {
+  position:relative;
+  width:112px;
+  height:142px;
+  margin:12px auto;
+  border:4px solid #9da7b5;
+  border-top:9px solid #9da7b5;
+  border-radius:10px 10px 22px 22px;
+  overflow:hidden;
+  background:white;
+}
+.jar-liquid {
+  position:absolute;
+  bottom:0;
+  left:0;
+  width:100%;
+  height:0;
+  transition:height .3s;
+}
+.jar-percent {
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  font-weight:bold;
+  color:var(--text);
+  text-shadow:0 1px 3px white;
+}
+.jar-actions {
+  display:flex;
+  justify-content:center;
+  gap:7px;
+  margin-top:13px;
+}
+.important-sol {
+  position:relative;
+  height:44px;
+  background:var(--soft);
+  border:1px solid var(--gray);
+  border-radius:8px;
+  color:var(--text);
+}
+.important-sol:hover {background:var(--pale)}
+.important-sol.active {
+  background:var(--yellow);
+  border-color:#e4b932;
+  font-weight:bold;
+}
+.event-dot {
+  position:absolute;
+  bottom:4px;
+  left:calc(50% - 3px);
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#d5a100;
+}
+.important-sol.active .event-dot {background:var(--blue)}
+.important-event {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:15px;
+  margin:10px 0;
+  border:1px solid var(--gray);
+  border-radius:12px;
+  background:#fafbfc;
+}
+.important-event-info {
+  flex:1;
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.important-event-title {
+  font-weight:bold;
+  margin-bottom:7px;
+}
+.important-event-date {
+  font-size:12px;
+  color:var(--blue);
+}
+.important-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.important-edit {
+  background:var(--pale);
+  border:1px solid var(--yellow);
+  border-radius:8px;
+  padding:8px 11px;
+}
+.important-delete {
+  background:white;
+  border:1px solid #e4b4b7;
+  color:#bd4f58;
+  border-radius:8px;
+  padding:8px 11px;
+}
+.footer {
+  text-align:center;
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:2px;
+  padding:25px;
+}
+@media(max-width:550px) {
+  body {padding:10px 8px}
+  .panel {padding:13px}
+  .calendar {gap:3px}
+  .day {height:34px;font-size:11px}
+  .important-sol {height:36px}
+  .weekday {font-size:9px}
+  .tab {padding:9px;font-size:12px}
+  .form {gap:9px}
+  .year,.month-name {font-size:19px}
+  .important-event {flex-wrap:wrap}
+  .important-actions {width:100%}
+}
+.year-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
+.year-month {border:1px solid var(--gray);border-radius:10px;padding:12px 10px;min-width:0;background:white}
+.year-month-title {font-size:13px;font-weight:bold;text-align:center;margin-bottom:9px}
+.year-days {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.year-weekday {font-size:9px;color:var(--muted);text-align:center;padding:4px 0}
+.year-sol {position:relative;height:29px;min-width:0;padding:0;border:1px solid transparent;border-radius:5px;background:white;color:var(--text);font-size:11px}
+.year-sol:hover {background:var(--pale)}
+.year-sol.has-event {background:var(--yellow);font-weight:bold}
+.year-sol.has-record {border-color:var(--blue)}
+.year-sol.selected {outline:2px solid var(--blue);outline-offset:-2px}
+.year-empty {height:29px}
+.year-legend {display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:12px}
+.year-swatch {display:inline-block;width:11px;height:11px;margin-right:5px;border-radius:3px;vertical-align:-1px}
+@media(max-width:550px) {
+ .year-grid {gap:5px}
+ .year-month {padding:8px 3px}
+ .year-month-title {font-size:11px}
+ .year-days {gap:0}
+ .year-weekday {font-size:7px}
+ .year-sol {height:20px;font-size:8px}
+ .year-empty {height:20px}
+}
+
+/* MTC SPORT & WELLNESS */
+.sport-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}
+.sport-panel{background:#fff;border:1px solid #dce3ea;border-radius:16px;padding:17px;margin:12px 0}
+.sport-panel h3{margin:0 0 12px}.sport-field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+.sport-field input,.sport-field select,.sport-field textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#18263c;box-sizing:border-box}
+.sport-field label{font-size:13px;font-weight:650}.sport-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sport-actions button{padding:10px 14px;border:0;border-radius:10px;background:#172b4d;color:white;cursor:pointer}
+.sport-actions button.alt{background:#f2c94c;color:#14243b}.sport-actions button.remove{background:#a52e38}
+.sport-item{border-top:1px solid #e3e8ee;padding:12px 0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.sport-muted{color:#697789;font-size:13px}.sport-number{font-size:28px;font-weight:750;color:#172b4d}.sport-bar{height:9px;background:#e8edf3;border-radius:9px;overflow:hidden;margin-top:6px}.sport-bar>div{height:100%;background:#e7b936}
+@media(max-width:600px){.sport-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>MTC</h1>
+  <div class="subtitle">MARTIAN TIME CALENDAR</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-page="calendarPage">Calendar</button>
+  <button class="tab" data-page="goalsPage">Goals</button>
+  <button class="tab" data-page="meetingsPage">Meetings</button>
+  <button class="tab" data-page="weekPage">Schedule</button>
+  <button class="tab" data-page="jarsPage">Goal Jars</button>
+  <button class="tab" data-page="importantPage">Important Dates</button>
+  <button class="tab" data-page="yearPage">Year Calendar</button>
+  <button class="tab" data-page="sportPage">Sports</button>
+  <button class="tab" data-page="sportStatsPage">Sports Statistics</button>
+  <button class="tab" data-page="healthPage">Health</button>
+</nav>
+
+
+<section class="page active" id="calendarPage">
+ <div class="panel">
+  <div class="label">MARTIAN CALENDAR · 687 SOLS</div>
+  <div class="control">
+   <button class="nav" id="prevYear">←</button>
+   <div class="year" id="yearDisplay"></div>
+   <button class="nav" id="nextYear">→</button>
+  </div>
+  <div class="control">
+   <button class="nav" id="prevMonth">←</button>
+   <div class="month-name" id="monthDisplay"></div>
+   <button class="nav" id="nextMonth">→</button>
+  </div>
+  <select id="monthSelect" class="month-select"></select>
+  <div class="calendar" id="calendar"></div>
+  <p class="muted">
+   Blue dot — entries. Yellow dot — important date.
+  </p>
+ </div>
+
+ <div class="panel">
+  <div class="label">DAILY PLANNER</div>
+  <div class="heading" id="dateHeading"></div>
+  <p class="muted" id="dateSub"></p>
+  <div id="dayEvents"></div>
+  <div class="muted" id="progressText"></div>
+  <div class="progress"><div class="fill" id="progressFill"></div></div>
+
+  <div class="label" style="margin-top:25px">NEW TASK</div>
+  <div class="form">
+   <div class="field wide">
+    <label>Task name</label>
+    <input id="taskTitle" placeholder="For example: English">
+   </div>
+   <div class="field">
+    <label>Start</label>
+    <input type="time" id="taskStart" value="10:00">
+   </div>
+   <div class="field">
+    <label>End</label>
+    <input type="time" id="taskEnd" value="11:30">
+   </div>
+   <button class="primary wide" id="addTask">+ Add Task</button>
+  </div>
+  <div id="taskList"></div>
+  <div class="label" style="margin-top:25px">NOTES</div>
+  <textarea id="notes" class="notes" placeholder="Ideas and reminders..."></textarea>
+ </div>
+</section>
+
+
+<section class="page" id="goalsPage">
+ <div class="panel">
+  <div class="label">GOAL PLANNER</div>
+  <div class="heading">My Goals</div>
+  <div class="form">
+   <div class="field wide">
+    <label>Goal name</label>
+    <input id="goalTitle" placeholder="For example: Finish a project">
+   </div>
+   <div class="field">
+    <label>Period</label>
+    <select id="goalPeriod">
+     <option value="week">Week</option>
+     <option value="month">Month</option>
+     <option value="year">Year</option>
+    </select>
+   </div>
+   <div class="field">
+    <label>Goal jar</label>
+    <select id="goalJar"></select>
+   </div>
+   <button class="primary wide" id="addGoal">+ Create Goal</button>
+  </div>
+  <div id="goalList"></div>
+ </div>
+</section>
+
+
+<section class="page" id="meetingsPage">
+ <div class="panel">
+  <div class="label">MEETING PLANNER</div>
+  <div class="heading">Meetings and Events</div>
+  <div class="form">
+   <div class="field wide">
+    <label>Meeting name</label>
+    <input id="meetingTitle" placeholder="Event name">
+   </div>
+   <div class="field">
+    <label>Martian date</label>
+    <input id="meetingDate" readonly>
+   </div>
+   <div class="field">
+    <label>Time</label>
+    <input type="time" id="meetingTime" value="12:00">
+   </div>
+   <button class="primary wide" id="addMeeting">+ Add Meeting</button>
+  </div>
+  <div id="meetingList"></div>
+ </div>
+</section>
+
+
+<section class="page" id="weekPage">
+ <div class="panel">
+  <div class="label">WEEKLY SCHEDULE</div>
+  <div class="heading">Weekly Schedule</div>
+  <p class="muted">Activities repeat every week.</p>
+  <div class="form">
+   <div class="field wide">
+    <label>Activity name</label>
+    <input id="lessonTitle" placeholder="For example: Mathematics">
+   </div>
+   <div class="field wide">
+    <label>Weekday</label>
+    <select id="lessonDay"></select>
+   </div>
+   <div class="field">
+    <label>Start</label>
+    <input type="time" id="lessonStart" value="09:00">
+   </div>
+   <div class="field">
+    <label>End</label>
+    <input type="time" id="lessonEnd" value="10:00">
+   </div>
+   <button class="primary wide" id="addLesson">+ Add Activity</button>
+  </div>
+ </div>
+ <div class="panel">
+  <div class="week-scroll">
+   <div class="week-grid" id="weekGrid"></div>
+  </div>
+ </div>
+</section>
+
+
+<section class="page" id="jarsPage">
+ <div class="panel">
+  <div class="label">GOAL JARS</div>
+  <div class="heading">My Goal Jars</div>
+  <p class="muted">Completed goals fill the selected jar.</p>
+  <div class="form">
+   <div class="field wide">
+    <label>Jar name</label>
+    <input id="jarName" placeholder="For example: Personal Growth">
+   </div>
+   <div class="field">
+    <label>Goal target</label>
+    <input type="number" id="jarTarget" min="1" value="10">
+   </div>
+   <div class="field">
+    <label>Fill color</label>
+    <input type="color" id="jarColor" value="#f5cc49">
+   </div>
+   <button class="primary wide" id="addJar">+ Create Jar</button>
+  </div>
+ </div>
+ <div class="jar-grid" id="jarGrid"></div>
+</section>
+
+
+<section class="page" id="importantPage">
+ <div class="panel">
+  <div class="label">IMPORTANT DATES</div>
+  <div class="heading">Important Dates Calendar</div>
+  <p class="muted">
+   Birthdays, holidays, and special events.
+  </p>
+  <div class="control">
+   <button class="nav" id="importantPrev">←</button>
+   <div class="month-name" id="importantMonthTitle"></div>
+   <button class="nav" id="importantNext">→</button>
+  </div>
+  <div class="calendar" id="importantCalendarGrid"></div>
+  <p class="muted">
+   Yellow dot — important date. Select a sol to view.
+  </p>
+ </div>
+
+ <div class="panel">
+  <div class="label">EVENTS</div>
+  <div class="heading" id="importantSelectedTitle"></div>
+  <div id="importantSelectedEvents"></div>
+ </div>
+
+ <div class="panel">
+  <div class="label">NEW EVENT</div>
+  <div class="heading" id="importantFormHeading">New Event</div>
+  <div class="form">
+   <div class="field wide">
+    <label>Event name</label>
+    <input id="importantTitle" placeholder="For example: New Year">
+   </div>
+   <div class="field">
+    <label>Martian year</label>
+    <input id="importantYear" type="number" value="39">
+   </div>
+   <div class="field">
+    <label>Month</label>
+    <select id="importantMonthSelect"></select>
+   </div>
+   <div class="field">
+    <label>Sol</label>
+    <input id="importantDay" type="number" min="1" max="30" value="1">
+   </div>
+   <div class="field">
+    <label>Repeat</label>
+    <select id="importantRepeat">
+     <option value="yes">Every year</option>
+     <option value="no">Once only</option>
+    </select>
+   </div>
+   <div class="field wide">
+    <label>Description</label>
+    <textarea id="importantDescription" placeholder="Additional information..."></textarea>
+   </div>
+   <button class="primary wide" id="importantSave">+ Save Event</button>
+   <button class="nav wide" id="importantCancel" hidden>Cancel Editing</button>
+  </div>
+ </div>
+
+ <div class="panel">
+  <div class="label">ALL EVENTS</div>
+  <div class="heading">All Important Dates</div>
+  <div id="importantAllEvents"></div>
+ </div>
+</section>
+
+
+
+<section class="page" id="yearPage">
+ <div class="panel">
+  <div class="label">FULL MARTIAN YEAR · 687 SOLS</div>
+  <div class="heading">Year Calendar</div>
+  <p class="muted">All 23 months. Select a sol to open it in the daily planner.</p>
+  <div class="control">
+   <button type="button" class="nav" id="yearPrev">←</button>
+   <div class="year" id="yearGridTitle">MY 39</div>
+   <button type="button" class="nav" id="yearNext">→</button>
+  </div>
+  <div class="year-grid" id="yearGrid"></div>
+  <div class="year-legend">
+   <span><span class="year-swatch" style="background:var(--yellow)"></span>Important date</span>
+   <span><span class="year-swatch" style="border:1px solid var(--blue)"></span>Daily entries</span>
+  </div>
+ </div>
+</section>
+
+ <div class="footer">MTC SYSTEM · 687 SOLS</div>
+</div>
+
+
+<section class="page" id="sportPage">
+ <h2>Sports · MTC</h2><p class="sport-muted">Create your own sports and schedule workouts using Martian dates.</p>
+ <div class="sport-panel"><h3>My Sports</h3><div class="sport-actions"><input id="sportTypeName" placeholder="For example: basketball" aria-label="Sport name"><button id="sportAddType">Add Sport</button></div><div id="sportTypes"></div></div>
+ <div class="sport-panel"><h3 id="sportFormTitle">New Workout</h3>
+ <div class="sport-grid">
+ <div class="sport-field"><label for="sportType">Sport</label><select id="sportType"></select></div>
+ <div class="sport-field"><label for="sportYear">Martian year (MU)</label><input type="number" id="sportYear" min="1"></div>
+ <div class="sport-field"><label for="sportMonth">Month</label><select id="sportMonth"></select></div>
+ <div class="sport-field"><label for="sportDay">Sol of month</label><input type="number" id="sportDay" min="1" max="30"></div>
+ <div class="sport-field"><label for="sportTime">Start</label><input type="time" id="sportTime" value="09:00"></div>
+ <div class="sport-field"><label for="sportDuration">Duration (min)</label><input type="number" id="sportDuration" min="1" max="1440" value="45"></div>
+ <div class="sport-field"><label for="sportStatus">Status</label><select id="sportStatus"><option value="planned">Planned</option><option value="done">Completed</option></select></div>
+ </div><div class="sport-field"><label for="sportNote">Notes</label><textarea id="sportNote" rows="2" placeholder="How did your workout go?"></textarea></div>
+ <div class="sport-actions"><button id="sportSave" class="alt">Save Workout</button><button id="sportCancel" type="button">Clear</button></div></div>
+ <div class="sport-panel"><h3>All Workouts</h3><div id="sportEntries"></div></div>
+</section>
+<section class="page" id="sportStatsPage"><h2>Sports Statistics</h2><p class="sport-muted">Only completed workouts are counted. A week is 7 sols; months and years follow MTC.</p>
+ <div class="sport-panel"><div class="sport-field"><label for="sportPeriod">Period</label><select id="sportPeriod"><option value="week">Last 7 sols</option><option value="month">Current Martian month</option><option value="year">Current Martian year</option><option value="all">All time</option></select></div><div class="sport-field"><label for="sportAnchor">Statistics reference date</label><input type="date" id="sportAnchor"></div></div>
+ <div class="sport-grid"><div class="sport-panel"><div class="sport-muted">Completed workouts</div><div class="sport-number" id="sportCount">0</div></div><div class="sport-panel"><div class="sport-muted">Total time</div><div class="sport-number" id="sportHours">0 hr</div></div><div class="sport-panel"><div class="sport-muted">Different sports</div><div class="sport-number" id="sportVariety">0</div></div></div>
+ <div class="sport-panel"><h3>By sport</h3><div id="sportBreakdown"></div></div>
+</section>
+<section class="page" id="healthPage"><h2>Health · MTC</h2><p class="sport-muted">Personal journal for sleep, energy, and well-being.</p>
+ <div class="sport-panel"><h3>Well-being Entry</h3><div class="sport-grid"><div class="sport-field"><label for="healthDate">Earth date</label><input type="date" id="healthDate"></div><div class="sport-field"><label for="healthSleep">Sleep (hours)</label><input type="number" id="healthSleep" min="0" max="24" step="0.25" placeholder="For example: 8.5"></div><div class="sport-field"><label for="healthEnergy">Energy</label><select id="healthEnergy"><option value="">Not selected</option><option value="1">1 — low</option><option value="2">2</option><option value="3">3 — medium</option><option value="4">4</option><option value="5">5 — high</option></select></div><div class="sport-field"><label for="healthMood">Well-being</label><select id="healthMood"><option value="">Not selected</option><option>Excellent</option><option>Good</option><option>Okay</option><option>Tired</option><option>Need rest</option></select></div></div>
+ <div class="sport-field"><label for="healthNote">Notes</label><textarea id="healthNote" rows="3" placeholder="How was your day?"></textarea></div><div class="sport-actions"><button id="healthSave" class="alt">Save Entry</button></div></div>
+ <div class="sport-panel"><h3>History</h3><div id="healthEntries"></div></div>
+</section>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const months = [
+ ["Aren",30],["Velen",30],["Soren",30],
+ ["Laren",30],["Maren",30],["Taren",30],
+ ["Noren",30],["Elen",30],["Koren",30],
+ ["Daren",30],["Raven",30],["Miren",30],
+ ["Solen",30],["Varen",30],["Renen",30],
+ ["Kalen",30],["Orlen",30],["Saven",30],
+ ["Teren",30],["Loren",30],
+ ["Naven",29],["Zaren",29],["Faren",29]
+];
+
+const weekdays = [
+ "Auri","Solir","Veri","Nari","Teri","Eli","Zari"
+];
+
+const KEY = "MTC_COMPLETE_V6";
+const OLD_KEY = "MTC_CUSTOM_PLANNER_V5";
+const IMPORTANT_KEY = "MTC_IMPORTANT_DATES_V2";
+
+let year=39,month=1,day=8;
+let importantViewYear=year;
+let importantViewMonth=month;
+let importantSelectedDay=day;
+let importantEditingId=null;
+
+let state={
+ days:{},
+ goals:[],
+ meetings:[],
+ lessons:[],
+ jars:[],
+ importantDates:[]
+};
+
+function uid() {
+ return "id_"+Date.now()+"_"+Math.random().toString(36).slice(2);
+}
+
+function save() {
+ try {
+  localStorage.setItem(KEY,JSON.stringify(state));
+  localStorage.setItem(
+   IMPORTANT_KEY,
+   JSON.stringify(state.importantDates)
+  );
+ } catch(e) {
+  console.error(e);
+  alert("Could not save data.");
+ }
+}
+
+function load() {
+ try {
+  const saved=JSON.parse(localStorage.getItem(KEY)||"null");
+  const old=JSON.parse(localStorage.getItem(OLD_KEY)||"null");
+  const source=saved||old;
+
+  if(source)state={...state,...source};
+
+  for(const name of ["goals","meetings","lessons","jars","importantDates"]) {
+   if(!Array.isArray(state[name]))state[name]=[];
+  }
+  if(!state.days||typeof state.days!=="object")state.days={};
+
+  const separate=localStorage.getItem(IMPORTANT_KEY);
+  if(separate!==null) {
+   const parsed=JSON.parse(separate);
+   if(Array.isArray(parsed))state.importantDates=parsed;
+  }
+  const ids=new Set();
+  state.importantDates.forEach(event=>{
+   if(!event.id||ids.has(String(event.id)))event.id=uid();
+   ids.add(String(event.id));
+  });
+ } catch(e) {
+  console.error("Loading error:",e);
+ }
+}
+
+function dateKey(y=year,m=month,d=day) {
+ return `MY${y}-M${m+1}-D${d}`;
+}
+function dateText(y=year,m=month,d=day) {
+ return `${d} ${months[m][0]} · MY ${y}`;
+}
+function dayRecord() {
+ const key=dateKey();
+ if(!state.days[key])state.days[key]={tasks:[],notes:""};
+ return state.days[key];
+}
+function yearDay(m,d) {
+ return months.slice(0,m).reduce((s,x)=>s+x[1],d);
+}
+function weekdayAt(y,m,d) {
+ return (((y-39)*687+yearDay(m,d)-1)%7+7)%7;
+}
+function changeMonth(n) {
+ month+=n;
+ if(month>22){month=0;year++;}
+ if(month<0){month=22;year--;}
+ day=Math.min(day,months[month][1]);
+ renderAll();
+}
+function changeYear(n) {
+ year+=n;
+ renderAll();
+}
+
+function utcDay(value) {
+ if(typeof value!=="string")return NaN;
+ const p=value.split("-").map(Number);
+ if(p.length!==3||p.some(n=>!Number.isFinite(n)))return NaN;
+ return Math.floor(Date.UTC(p[0],p[1]-1,p[2])/86400000);
+}
+const EPOCH_DAY=utcDay("2026-09-30");
+
+function eventMatches(event,y,m,d) {
+ if(!event||!event.date)return false;
+
+ if(event.type==="earth") {
+  if(typeof event.date!=="string")return false;
+  const p=event.date.split("-").map(Number);
+  if(p.length!==3)return false;
+  const serial=(y-39)*687+yearDay(m,d)-1;
+  const target=new Date((EPOCH_DAY+serial)*86400000);
+  const repeat=event.repeat===true||event.repeat==="yes";
+
+  return target.getUTCMonth()+1===p[1] &&
+    target.getUTCDate()===p[2] &&
+    (repeat||target.getUTCFullYear()===p[0]);
+ }
+
+ const e=event.date;
+ const repeat=event.repeat===true||event.repeat==="yes";
+ return Number(e.month)===m &&
+  Number(e.day)===d &&
+  (repeat||Number(e.year)===y);
+}
+
+function eventsFor(y,m,d) {
+ return state.importantDates.filter(e=>eventMatches(e,y,m,d));
+}
+
+function createDots(hasRecords,hasEvents) {
+ const dots=document.createElement("div");
+ dots.className="dots";
+ if(hasRecords) {
+  const dot=document.createElement("span");
+  dot.className="dot";
+  dots.append(dot);
+ }
+ if(hasEvents) {
+  const dot=document.createElement("span");
+  dot.className="dot event";
+  dots.append(dot);
+ }
+ return dots;
+}
+
+function renderCalendar() {
+ $("yearDisplay").textContent="MY "+year;
+ $("monthDisplay").textContent=months[month][0];
+ $("monthSelect").value=month;
+
+ const grid=$("calendar");
+ grid.replaceChildren();
+
+ weekdays.forEach(name=>{
+  const el=document.createElement("div");
+  el.className="weekday";
+  el.textContent=name;
+  grid.append(el);
+ });
+
+ const offset=weekdayAt(year,month,1);
+ for(let i=0;i<offset;i++) {
+  const el=document.createElement("div");
+  el.className="empty-day";
+  grid.append(el);
+ }
+
+ for(let d=1;d<=months[month][1];d++) {
+  const el=document.createElement("button");
+  el.type="button";
+  el.className="day"+(day===d?" selected":"");
+  el.textContent=d;
+
+  const record=state.days[dateKey(year,month,d)];
+  const hasRecords=!!(record&&((record.tasks||[]).length||record.notes));
+  const hasEvents=eventsFor(year,month,d).length>0;
+
+  if(hasRecords||hasEvents)el.append(createDots(hasRecords,hasEvents));
+
+  el.onclick=()=>{
+   day=d;
+   renderAll();
+  };
+  grid.append(el);
+ }
+}
+
+function makeItem(title,meta,done,onCheck,onDelete) {
+ const el=document.createElement("div");
+ el.className="item"+(done?" done":"");
+
+ if(onCheck) {
+  const check=document.createElement("input");
+  check.type="checkbox";
+  check.checked=!!done;
+  check.onchange=()=>onCheck(check.checked);
+  el.append(check);
+ }
+
+ const body=document.createElement("div");
+ body.className="item-body";
+
+ const name=document.createElement("div");
+ name.className="item-title";
+ name.textContent=title;
+
+ const info=document.createElement("div");
+ info.className="item-meta";
+ info.textContent=meta||"";
+
+ body.append(name,info);
+ el.append(body);
+
+ const remove=document.createElement("button");
+ remove.type="button";
+ remove.className="danger small";
+ remove.textContent="Delete";
+ remove.onclick=onDelete;
+ el.append(remove);
+
+ return el;
+}
+function emptyMessage(container,message) {
+ const el=document.createElement("div");
+ el.className="empty-text";
+ el.textContent=message;
+ container.append(el);
+}
+
+function renderDayEvents() {
+ const container=$("dayEvents");
+ container.replaceChildren();
+ const events=eventsFor(year,month,day);
+ if(!events.length)return;
+
+ const box=document.createElement("div");
+ box.className="event-box";
+ const title=document.createElement("div");
+ title.className="label";
+ title.textContent="IMPORTANT EVENTS";
+ box.append(title);
+
+ events.forEach(event=>{
+  const line=document.createElement("div");
+  line.className="event-line";
+  line.textContent="★ "+event.title;
+  box.append(line);
+ });
+ container.append(box);
+}
+
+function renderTasks() {
+ $("dateHeading").textContent=dateText();
+ $("dateSub").textContent=
+  "Weekday: "+weekdays[weekdayAt(year,month,day)];
+ renderDayEvents();
+
+ const record=dayRecord();
+ record.tasks||=[];
+ $("notes").value=record.notes||"";
+
+ const list=$("taskList");
+ list.replaceChildren();
+
+ const tasks=[...record.tasks].sort(
+  (a,b)=>(a.start||"").localeCompare(b.start||"")
+ );
+
+ tasks.forEach(t=>{
+  list.append(makeItem(
+   t.title,
+   (t.start||"")+" – "+(t.end||""),
+   t.done,
+   value=>{
+    t.done=value;
+    save();
+    renderTasks();
+   },
+   ()=>{
+    record.tasks=record.tasks.filter(x=>x!==t);
+    save();
+    renderAll();
+   }
+  ));
+ });
+
+ if(!tasks.length)emptyMessage(list,"No tasks for this sol.");
+
+ const done=tasks.filter(t=>t.done).length;
+ $("progressText").textContent=`Completed: ${done} / ${tasks.length}`;
+ $("progressFill").style.width=
+  (tasks.length?done/tasks.length*100:0)+"%";
+ $("meetingDate").value=dateText();
+}
+
+function addTask() {
+ const title=$("taskTitle").value.trim();
+ const start=$("taskStart").value;
+ const end=$("taskEnd").value;
+ if(!title||!start||!end)return alert("Enter a name and time.");
+ if(start===end)return alert("Start and end times must differ.");
+
+ dayRecord().tasks.push({id:uid(),title,start,end,done:false});
+ $("taskTitle").value="";
+ save();
+ renderAll();
+}
+
+function renderGoalJarSelect() {
+ const select=$("goalJar");
+ const selected=select.value;
+ select.replaceChildren();
+
+ const none=document.createElement("option");
+ none.value="";
+ none.textContent="No jar";
+ select.append(none);
+
+ state.jars.forEach(j=>{
+  const opt=document.createElement("option");
+  opt.value=j.id;
+  opt.textContent=j.name;
+  select.append(opt);
+ });
+ select.value=state.jars.some(j=>j.id===selected)?selected:"";
+}
+
+function renderGoals() {
+ const list=$("goalList");
+ list.replaceChildren();
+ const periods={week:"Week",month:"Month",year:"Year"};
+
+ state.goals.forEach(g=>{
+  const jar=state.jars.find(j=>j.id===g.jarId);
+  const meta=(periods[g.period]||g.period||"")+" · "+
+   (g.date||"")+(jar?" · Jar: "+jar.name:"");
+
+  list.append(makeItem(g.title,meta,g.done,
+   value=>{
+    g.done=value;
+    save();
+    renderGoals();
+    renderJars();
+   },
+   ()=>{
+    state.goals=state.goals.filter(x=>x!==g);
+    save();
+    renderAll();
+   }
+  ));
+ });
+ if(!state.goals.length)emptyMessage(list,"No goals yet.");
+}
+
+function addGoal() {
+ const title=$("goalTitle").value.trim();
+ if(!title)return alert("Enter a goal name.");
+ state.goals.push({
+  id:uid(),title,
+  period:$("goalPeriod").value,
+  date:dateText(),
+  jarId:$("goalJar").value,
+  done:false
+ });
+ $("goalTitle").value="";
+ save();
+ renderAll();
+}
+
+function renderMeetings() {
+ const list=$("meetingList");
+ list.replaceChildren();
+
+ state.meetings.forEach(m=>{
+  list.append(makeItem(
+   m.title,(m.date||"")+" · "+(m.time||""),
+   m.done,
+   value=>{
+    m.done=value;
+    save();
+    renderMeetings();
+   },
+   ()=>{
+    state.meetings=state.meetings.filter(x=>x!==m);
+    save();
+    renderMeetings();
+   }
+  ));
+ });
+ if(!state.meetings.length)emptyMessage(list,"No meetings yet.");
+}
+
+function addMeeting() {
+ const title=$("meetingTitle").value.trim();
+ if(!title)return alert("Enter a meeting name.");
+ state.meetings.push({
+  id:uid(),title,date:dateText(),
+  time:$("meetingTime").value,done:false
+ });
+ $("meetingTitle").value="";
+ save();
+ renderMeetings();
+}
+
+function renderWeek() {
+ const grid=$("weekGrid");
+ grid.replaceChildren();
+
+ weekdays.forEach((name,index)=>{
+  const col=document.createElement("div");
+  col.className="week-column";
+
+  const heading=document.createElement("div");
+  heading.className="week-title";
+  heading.textContent=name;
+  col.append(heading);
+
+  const lessons=state.lessons
+   .filter(l=>Number(l.day)===index)
+   .sort((a,b)=>(a.start||"").localeCompare(b.start||""));
+
+  lessons.forEach(l=>{
+   const card=document.createElement("div");
+   card.className="lesson";
+
+   const time=document.createElement("div");
+   time.className="lesson-time";
+   time.textContent=l.start+" – "+l.end;
+
+   const title=document.createElement("div");
+   title.textContent=l.title;
+
+   const remove=document.createElement("button");
+   remove.className="danger small";
+   remove.textContent="Delete";
+   remove.onclick=()=>{
+    state.lessons=state.lessons.filter(x=>x!==l);
+    save();
+    renderWeek();
+   };
+
+   card.append(time,title,remove);
+   col.append(card);
+  });
+  grid.append(col);
+ });
+}
+
+function addLesson() {
+ const title=$("lessonTitle").value.trim();
+ const start=$("lessonStart").value;
+ const end=$("lessonEnd").value;
+ if(!title||!start||!end)return alert("Fill in all fields.");
+ if(start===end)return alert("Choose different start and end times.");
+
+ state.lessons.push({
+  id:uid(),title,
+  day:Number($("lessonDay").value),
+  start,end
+ });
+ $("lessonTitle").value="";
+ save();
+ renderWeek();
+}
+
+function addJar() {
+ const name=$("jarName").value.trim();
+ const target=Number($("jarTarget").value);
+ if(!name)return alert("Enter a jar name.");
+ if(!Number.isInteger(target)||target<1)
+  return alert("Goal target must be greater than zero.");
+
+ state.jars.push({
+  id:uid(),name,target,
+  color:$("jarColor").value
+ });
+ $("jarName").value="";
+ save();
+ renderAll();
+}
+
+function deleteJar(id) {
+ state.jars=state.jars.filter(j=>j.id!==id);
+ state.goals.forEach(g=>{
+  if(g.jarId===id)g.jarId="";
+ });
+ save();
+ renderAll();
+}
+
+function renderJars() {
+ const grid=$("jarGrid");
+ grid.replaceChildren();
+
+ if(!state.jars.length) {
+  emptyMessage(grid,"Create your first jar.");
+  return;
+ }
+
+ state.jars.forEach(jar=>{
+  const count=state.goals.filter(g=>g.jarId===jar.id&&g.done).length;
+  const target=Math.max(1,Number(jar.target)||1);
+  const percent=Math.min(100,Math.round(count/target*100));
+
+  const card=document.createElement("div");
+  card.className="jar-card";
+
+  const title=document.createElement("div");
+  title.className="jar-name";
+  title.textContent=jar.name;
+
+  const art=document.createElement("div");
+  art.className="jar-art";
+
+  const liquid=document.createElement("div");
+  liquid.className="jar-liquid";
+  liquid.style.height=percent+"%";
+  liquid.style.background=jar.color||"#f5cc49";
+
+  const pct=document.createElement("div");
+  pct.className="jar-percent";
+  pct.textContent=percent+"%";
+  art.append(liquid,pct);
+
+  const info=document.createElement("div");
+  info.className="muted";
+  info.textContent=`${count} completed / ${target} goals`;
+
+  const actions=document.createElement("div");
+  actions.className="jar-actions";
+
+  const remove=document.createElement("button");
+  remove.className="danger small";
+  remove.textContent="Delete Jar";
+  remove.onclick=()=>{
+   if(confirm(`Delete jar “${jar.name}”? Goals will remain.`))
+    deleteJar(jar.id);
+  };
+
+  actions.append(remove);
+  card.append(title,art,info,actions);
+  grid.append(card);
+ });
+}
+
+function importantDateLabel(event) {
+ if(event.type==="earth")return "Earth date: "+event.date;
+ const d=event.date;
+ if(!d||typeof d!=="object")return "";
+ const name=months[Number(d.month)]?.[0]||"";
+ return `${d.day} ${name} · MY ${d.year}`;
+}
+
+function importantEventsAt(y,m,d) {
+ return eventsFor(y,m,d);
+}
+
+function importantRenderCalendar() {
+ const grid=$("importantCalendarGrid");
+ grid.replaceChildren();
+
+ $("importantMonthTitle").textContent=
+  months[importantViewMonth][0]+" · MY "+importantViewYear;
+
+ weekdays.forEach(name=>{
+  const el=document.createElement("div");
+  el.className="weekday";
+  el.textContent=name;
+  grid.append(el);
+ });
+
+ const offset=weekdayAt(importantViewYear,importantViewMonth,1);
+ for(let i=0;i<offset;i++) {
+  const el=document.createElement("div");
+  el.className="empty-day";
+  grid.append(el);
+ }
+
+ for(let d=1;d<=months[importantViewMonth][1];d++) {
+  const button=document.createElement("button");
+  button.type="button";
+  button.className="important-sol";
+  button.textContent=d;
+
+  if(d===importantSelectedDay)button.classList.add("active");
+
+  const events=importantEventsAt(
+   importantViewYear,importantViewMonth,d
+  );
+
+  if(events.length) {
+   const dot=document.createElement("span");
+   dot.className="event-dot";
+   button.append(dot);
+   button.title=events.map(e=>e.title).join(", ");
+  }
+
+  button.onclick=()=>{
+   importantSelectedDay=d;
+   importantRender();
+  };
+  grid.append(button);
+ }
+}
+
+function importantMakeEvent(event) {
+ const card=document.createElement("div");
+ card.className="important-event";
+
+ const info=document.createElement("div");
+ info.className="important-event-info";
+
+ const title=document.createElement("div");
+ title.className="important-event-title";
+ title.textContent=event.title;
+
+ const date=document.createElement("div");
+ date.className="important-event-date";
+ const recurring=event.repeat===true||event.repeat==="yes";
+ date.textContent=importantDateLabel(event)+
+  (recurring?" · Every year":"");
+
+ info.append(title,date);
+
+ if(event.description) {
+  const description=document.createElement("p");
+  description.className="muted";
+  description.textContent=event.description;
+  info.append(description);
+ }
+
+ const actions=document.createElement("div");
+ actions.className="important-actions";
+
+ const edit=document.createElement("button");
+ edit.type="button";
+ edit.className="important-edit";
+ edit.textContent="Edit";
+ edit.dataset.action="edit";
+ edit.dataset.id=event.id;
+
+ const remove=document.createElement("button");
+ remove.type="button";
+ remove.className="important-delete";
+ remove.textContent="Delete";
+ remove.dataset.action="delete";
+ remove.dataset.id=event.id;
+
+ actions.append(edit,remove);
+ card.append(info,actions);
+ return card;
+}
+
+function importantRenderSelected() {
+ const list=$("importantSelectedEvents");
+ list.replaceChildren();
+
+ $("importantSelectedTitle").textContent=
+  importantSelectedDay+" "+months[importantViewMonth][0]+
+  " · MY "+importantViewYear;
+
+ const events=importantEventsAt(
+  importantViewYear,importantViewMonth,importantSelectedDay
+ );
+
+ if(!events.length) {
+  emptyMessage(list,"No events on this sol.");
+  return;
+ }
+ events.forEach(e=>list.append(importantMakeEvent(e)));
+}
+
+function importantRenderAll() {
+ const list=$("importantAllEvents");
+ list.replaceChildren();
+
+ if(!state.importantDates.length) {
+  emptyMessage(list,"No important dates yet.");
+  return;
+ }
+ state.importantDates.forEach(e=>list.append(importantMakeEvent(e)));
+}
+
+function importantRender() {
+ importantRenderCalendar();
+ importantRenderSelected();
+ importantRenderAll();
+}
+
+function importantResetForm() {
+ importantEditingId=null;
+ $("importantTitle").value="";
+ $("importantDescription").value="";
+ $("importantRepeat").value="yes";
+ $("importantFormHeading").textContent="New Event";
+ $("importantSave").textContent="+ Save Event";
+ $("importantCancel").hidden=true;
+}
+
+function importantSaveEvent() {
+ const title=$("importantTitle").value.trim();
+ const description=$("importantDescription").value.trim();
+ const y=Number($("importantYear").value);
+ const m=Number($("importantMonthSelect").value);
+ const d=Number($("importantDay").value);
+
+ if(!title)return alert("Enter an event name.");
+
+ if(!Number.isInteger(y)||!Number.isInteger(m)||
+    m<0||m>=months.length||
+    !Number.isInteger(d)||d<1||d>months[m][1]) {
+  return alert("Enter a valid date.");
+ }
+
+ const event={
+  id:importantEditingId||uid(),
+  title,description,
+  type:"mars",
+  date:{year:y,month:m,day:d},
+  repeat:$("importantRepeat").value==="yes"
+ };
+
+ if(importantEditingId) {
+  const index=state.importantDates.findIndex(
+   e=>String(e.id)===String(importantEditingId)
+  );
+  if(index>=0)state.importantDates[index]=event;
+  else state.importantDates.push(event);
+ } else {
+  state.importantDates.push(event);
+ }
+
+ importantViewYear=y;
+ importantViewMonth=m;
+ importantSelectedDay=d;
+
+ save();
+ importantResetForm();
+ renderAll();
+}
+
+function importantDeleteEvent(id) {
+ const index=state.importantDates.findIndex(
+  e=>String(e.id)===String(id)
+ );
+ if(index<0)return alert("Event not found.");
+
+ const event=state.importantDates[index];
+ if(!window.confirm("Delete event “"+event.title+"”?"))
+  return;
+
+ state.importantDates.splice(index,1);
+
+ if(String(importantEditingId)===String(id))
+  importantResetForm();
+
+ save();
+ renderAll();
+}
+
+function importantEditEvent(id) {
+ const event=state.importantDates.find(
+  e=>String(e.id)===String(id)
+ );
+ if(!event)return;
+
+ if(event.type==="earth") {
+  alert("To change an Earth date, delete the old entry and create a Martian one.");
+  return;
+ }
+
+ importantEditingId=event.id;
+ $("importantTitle").value=event.title||"";
+ $("importantDescription").value=event.description||"";
+ $("importantYear").value=event.date.year;
+ $("importantMonthSelect").value=event.date.month;
+ $("importantDay").value=event.date.day;
+ $("importantRepeat").value=event.repeat?"yes":"no";
+ $("importantFormHeading").textContent="Edit Event";
+ $("importantSave").textContent="Save Changes";
+ $("importantCancel").hidden=false;
+ $("importantTitle").focus();
+}
+
+function importantChangeMonth(direction) {
+ importantViewMonth+=direction;
+ if(importantViewMonth>22) {
+  importantViewMonth=0;
+  importantViewYear++;
+ }
+ if(importantViewMonth<0) {
+  importantViewMonth=22;
+  importantViewYear--;
+ }
+ importantSelectedDay=Math.min(
+  importantSelectedDay,months[importantViewMonth][1]
+ );
+ importantRender();
+}
+
+function renderAll() {
+ renderCalendar();
+ renderTasks();
+ renderGoalJarSelect();
+ renderGoals();
+ renderMeetings();
+ renderWeek();
+ renderJars();
+ importantRender();
+ renderYearGrid();
+}
+let yearGridYear=year;
+function renderYearGrid() {
+ const grid=$("yearGrid");
+ if(!grid)return;
+ $("yearGridTitle").textContent="MY "+yearGridYear;
+ grid.replaceChildren();
+ months.forEach(([name,length],m)=>{
+  const card=document.createElement("div");
+  card.className="year-month";
+  const title=document.createElement("div");
+  title.className="year-month-title";
+  title.textContent=name;
+  card.append(title);
+  const days=document.createElement("div");
+  days.className="year-days";
+  weekdays.forEach(w=>{
+   const label=document.createElement("div");
+   label.className="year-weekday";
+   label.textContent=w.slice(0,2);
+   label.title=w;
+   days.append(label);
+  });
+  const offset=weekdayAt(yearGridYear,m,1);
+  for(let i=0;i<offset;i++){
+   const empty=document.createElement("div");
+   empty.className="year-empty";
+   days.append(empty);
+  }
+  for(let d=1;d<=length;d++){
+   const sol=document.createElement("button");
+   sol.type="button";
+   sol.className="year-sol";
+   sol.textContent=d;
+   const events=eventsFor(yearGridYear,m,d);
+   const record=state.days[dateKey(yearGridYear,m,d)];
+   if(events.length){
+    sol.classList.add("has-event");
+    sol.title=events.map(e=>e.title).join(", ");
+   }
+   if(record&&((record.tasks||[]).length||record.notes))
+    sol.classList.add("has-record");
+   if(yearGridYear===year&&m===month&&d===day)
+    sol.classList.add("selected");
+   sol.setAttribute("aria-label",dateText(yearGridYear,m,d)+(events.length?": "+sol.title:""));
+   sol.onclick=()=>{
+    year=yearGridYear;
+    month=m;
+    day=d;
+    renderAll();
+    document.querySelector('.tab[data-page="calendarPage"]').click();
+    window.scrollTo({top:0,behavior:"smooth"});
+   };
+   days.append(sol);
+  }
+  card.append(days);
+  grid.append(card);
+ });
+}
+$("yearPrev").onclick=()=>{yearGridYear--;renderYearGrid()};
+$("yearNext").onclick=()=>{yearGridYear++;renderYearGrid()};
+months.forEach(([name,length],i)=>{
+ const option=document.createElement("option");
+ option.value=i;
+ option.textContent=`${i+1}. ${name} · ${length} sols`;
+ $("monthSelect").append(option);
+
+ const importantOption=document.createElement("option");
+ importantOption.value=i;
+ importantOption.textContent=name;
+ $("importantMonthSelect").append(importantOption);
+});
+
+weekdays.forEach((name,i)=>{
+ const option=document.createElement("option");
+ option.value=i;
+ option.textContent=name;
+ $("lessonDay").append(option);
+});
+$("prevYear").onclick=()=>changeYear(-1);
+$("nextYear").onclick=()=>changeYear(1);
+$("prevMonth").onclick=()=>changeMonth(-1);
+$("nextMonth").onclick=()=>changeMonth(1);
+
+$("monthSelect").onchange=e=>{
+ month=Number(e.target.value);
+ day=Math.min(day,months[month][1]);
+ renderAll();
+};
+
+$("importantPrev").onclick=()=>importantChangeMonth(-1);
+$("importantNext").onclick=()=>importantChangeMonth(1);
+$("addTask").onclick=addTask;
+$("addGoal").onclick=addGoal;
+$("addMeeting").onclick=addMeeting;
+$("addLesson").onclick=addLesson;
+$("addJar").onclick=addJar;
+$("importantSave").onclick=importantSaveEvent;
+$("importantCancel").onclick=importantResetForm;
+$("importantPage").addEventListener("click",event=>{
+ const button=event.target.closest(
+  "button[data-action][data-id]"
+ );
+ if(!button)return;
+
+ const id=button.dataset.id;
+ if(button.dataset.action==="delete")
+  importantDeleteEvent(id);
+ if(button.dataset.action==="edit")
+  importantEditEvent(id);
+});
+
+// NOTES
+$("notes").oninput=e=>{
+ dayRecord().notes=e.target.value;
+ save();
+};
+document.querySelectorAll(".tab").forEach(button=>{
+ button.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(
+   el=>el.classList.remove("active")
+  );
+  document.querySelectorAll(".page").forEach(
+   el=>el.classList.remove("active")
+  );
+  button.classList.add("active");
+  $(button.dataset.page).classList.add("active");
+  if(button.dataset.page==="yearPage")renderYearGrid();
+ };
+});
+load();
+$("importantMonthSelect").value=importantViewMonth;
+$("importantYear").value=importantViewYear;
+$("importantDay").value=importantSelectedDay;
+renderAll();
+const SPORT_KEY='MTC_SPORT_HEALTH_V1';
+let sportData={types:[],workouts:[],health:[]},sportEdit=null;
+try{const v=JSON.parse(localStorage.getItem(SPORT_KEY)||'null');if(v){for(const k of ['types','workouts','health'])if(Array.isArray(v[k]))sportData[k]=v[k];}}catch(e){console.warn(e)}
+function sportPersist(){try{localStorage.setItem(SPORT_KEY,JSON.stringify(sportData))}catch(e){alert('Could not save data.')}}
+function sportEscape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function sportSerial(y,m,d){return (y-39)*687+months.slice(0,m).reduce((n,a)=>n+a[1],0)+d-1}
+function sportDateFromEarth(value){const date=new Date(value+'T12:00:00');if(!Number.isFinite(date.getTime()))return null;const days=Math.floor((Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2026,8,30))/86400000);let y=39+Math.floor(days/687),n=((days%687)+687)%687,m=0;while(n>=months[m][1])n-=months[m++][1];return {y,m,d:n+1,serial:days}}
+function sportToday(){const n=new Date();if(n.getHours()<5)n.setDate(n.getDate()-1);const iso=[n.getFullYear(),String(n.getMonth()+1).padStart(2,'0'),String(n.getDate()).padStart(2,'0')].join('-');return sportDateFromEarth(iso)}
+function sportText(w){return `${w.d} ${months[w.m]?.[0]||'?'} · MU ${w.y}`}
+function sportTypeName(id){return sportData.types.find(t=>t.id===id)?.name||'Deleted sport'}
+function sportReset(){sportEdit=null;$('sportFormTitle').textContent='New Workout';$('sportYear').value=sportToday().y;$('sportMonth').value=sportToday().m;$('sportDay').value=sportToday().d;$('sportTime').value='09:00';$('sportDuration').value=45;$('sportStatus').value='planned';$('sportNote').value=''}
+function sportRender(){const type=$('sportType');const previous=type.value;type.innerHTML=sportData.types.map(t=>`<option value="${sportEscape(t.id)}">${sportEscape(t.name)}</option>`).join('');if(sportData.types.some(t=>t.id===previous))type.value=previous;
+ $('sportTypes').innerHTML=sportData.types.map(t=>`<div class="sport-item"><span>${sportEscape(t.name)}</span><div class="sport-actions"><button data-rename="${sportEscape(t.id)}">Rename</button><button type="button" class="remove" data-delete-type="${sportEscape(t.id)}">Delete</button></div></div>`).join('')||'<p class="sport-muted">Add your first sport.</p>';
+ const ordered=[...sportData.workouts].sort((a,b)=>sportSerial(b.y,b.m,b.d)-sportSerial(a.y,a.m,a.d)||b.time.localeCompare(a.time));
+ $('sportEntries').innerHTML=ordered.map(w=>`<div class="sport-item"><div><strong>${sportEscape(sportTypeName(w.type))}</strong> · ${sportEscape(sportText(w))}<div class="sport-muted">${sportEscape(w.time)} · ${w.duration} min · ${w.done?'✓ Completed':'Planned'}</div>${w.note?`<div>${sportEscape(w.note)}</div>`:''}</div><div class="sport-actions"><button data-toggle="${sportEscape(w.id)}">${w.done?'Undo ✓':'Complete ✓'}</button><button data-edit="${sportEscape(w.id)}">Edit</button><button type="button" class="remove" data-remove="${sportEscape(w.id)}">Delete</button></div></div>`).join('')||'<p class="sport-muted">No workouts yet.</p>';
+ sportStats();healthRender();}
+function sportStats(){const anchor=sportDateFromEarth($('sportAnchor').value)||sportToday(),period=$('sportPeriod').value;const filtered=sportData.workouts.filter(w=>{if(!w.done)return false;const serial=sportSerial(w.y,w.m,w.d);if(period==='all')return true;if(period==='week')return serial>=anchor.serial-6&&serial<=anchor.serial;if(period==='month')return w.y===anchor.y&&w.m===anchor.m;return w.y===anchor.y});const mins=filtered.reduce((n,w)=>n+Number(w.duration),0);$('sportCount').textContent=filtered.length;$('sportHours').textContent=`${Math.floor(mins/60)} hr ${mins%60} min`;const groups={};for(const w of filtered){const key=w.type;groups[key]??={count:0,mins:0};groups[key].count++;groups[key].mins+=Number(w.duration)}$('sportVariety').textContent=Object.keys(groups).length;const max=Math.max(1,...Object.values(groups).map(g=>g.count));$('sportBreakdown').innerHTML=Object.entries(groups).sort((a,b)=>b[1].count-a[1].count).map(([id,g])=>`<div style="margin:16px 0"><strong>${sportEscape(sportTypeName(id))}</strong> — ${g.count} workouts · ${Math.floor(g.mins/60)} hr ${g.mins%60} min<div class="sport-bar"><div style="width:${100*g.count/max}%"></div></div></div>`).join('')||'<p class="sport-muted">No completed workouts in this period.</p>'}
+function healthRender(){$('healthEntries').innerHTML=[...sportData.health].sort((a,b)=>b.date.localeCompare(a.date)).map(h=>`<div class="sport-item"><div><strong>${sportEscape(h.date)}</strong> · ${sportEscape((sportDateFromEarth(h.date)&&sportText({y:sportDateFromEarth(h.date).y,m:sportDateFromEarth(h.date).m,d:sportDateFromEarth(h.date).d}))||'')}<div class="sport-muted">Sleep: ${h.sleep===''?'—':sportEscape(h.sleep)+' hr'} · Energy: ${sportEscape(h.energy||'—')} · ${sportEscape(h.mood||'—')}</div><div>${sportEscape(h.note||'')}</div></div><div class="sport-actions"><button data-health-edit="${sportEscape(h.date)}">Edit</button><button type="button" class="remove" data-health-delete="${sportEscape(h.date)}">Delete</button></div></div>`).join('')||'<p class="sport-muted">No entries yet.</p>'}
+$('sportMonth').innerHTML=months.map((m,i)=>`<option value="${i}">${m[0]}</option>`).join('');
+$('sportAddType').onclick=()=>{const name=$('sportTypeName').value.trim();if(!name)return alert('Enter a sport name');if(sportData.types.some(t=>t.name.toLowerCase()===name.toLowerCase()))return alert('This sport already exists');sportData.types.push({id:uid(),name});$('sportTypeName').value='';sportPersist();sportRender()};
+$('sportTypes').onclick=e=>{const b=e.target.closest('button');if(!b)return;const rename=b.dataset.rename,del=b.dataset.deleteType;if(rename){const t=sportData.types.find(t=>t.id===rename);if(!t)return;const name=prompt('New name',t.name)?.trim();if(name){t.name=name;sportPersist();sportRender()}}if(del){if(sportData.workouts.some(w=>w.type===del))return alert('Delete workouts of this sport first to preserve their names.');{sportData.types=sportData.types.filter(t=>t.id!==del);sportPersist();sportRender()}}};
+$('sportSave').onclick=()=>{const type=$('sportType').value,y=Number($('sportYear').value),m=Number($('sportMonth').value),d=Number($('sportDay').value),duration=Number($('sportDuration').value),time=$('sportTime').value;if(!sportData.types.some(t=>t.id===type))return alert('Add a sport first');if(!Number.isInteger(y)||y<1||!Number.isInteger(m)||m<0||m>=months.length||!Number.isInteger(d)||d<1||d>months[m][1])return alert('Check the Martian date');if(!Number.isInteger(duration)||duration<1||duration>1440||!/^\d{2}:\d{2}$/.test(time))return alert('Check the time and duration');const w={id:sportEdit||uid(),type,y,m,d,duration,time,done:$('sportStatus').value==='done',note:$('sportNote').value.trim()};if(sportEdit)sportData.workouts=sportData.workouts.map(v=>v.id===sportEdit?w:v);else sportData.workouts.push(w);sportPersist();sportReset();sportRender()};
+$('sportCancel').onclick=sportReset;
+$('sportEntries').onclick=e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.toggle||b.dataset.edit||b.dataset.remove,w=sportData.workouts.find(w=>w.id===id);if(!w)return;if(b.dataset.toggle){w.done=!w.done;sportPersist();sportRender()}else if(b.dataset.remove){{sportData.workouts=sportData.workouts.filter(w=>w.id!==id);if(sportEdit===id)sportReset();sportPersist();sportRender()}}else{sportEdit=id;$('sportFormTitle').textContent='Edit Workout';$('sportType').value=w.type;$('sportYear').value=w.y;$('sportMonth').value=w.m;$('sportDay').value=w.d;$('sportTime').value=w.time;$('sportDuration').value=w.duration;$('sportStatus').value=w.done?'done':'planned';$('sportNote').value=w.note||'';$('sportFormTitle').scrollIntoView({behavior:'smooth'})}};
+$('sportPeriod').onchange=sportStats;$('sportAnchor').onchange=sportStats;
+$('healthSave').onclick=()=>{const date=$('healthDate').value,sleep=$('healthSleep').value,energy=$('healthEnergy').value,mood=$('healthMood').value,note=$('healthNote').value.trim();if(!sportDateFromEarth(date))return alert('Choose a date');if(sleep!==''&&(!Number.isFinite(Number(sleep))||Number(sleep)<0||Number(sleep)>24))return alert('Check sleep hours');const h={date,sleep,energy,mood,note};sportData.health=sportData.health.filter(v=>v.date!==date);sportData.health.push(h);sportPersist();healthRender()};
+$('healthEntries').onclick=e=>{const b=e.target.closest('button');if(!b)return;const date=b.dataset.healthEdit||b.dataset.healthDelete,h=sportData.health.find(h=>h.date===date);if(!h)return;if(b.dataset.healthDelete){{sportData.health=sportData.health.filter(v=>v.date!==date);sportPersist();healthRender()}}else{$('healthDate').value=h.date;$('healthSleep').value=h.sleep;$('healthEnergy').value=h.energy;$('healthMood').value=h.mood;$('healthNote').value=h.note;$('healthDate').scrollIntoView({behavior:'smooth'})}};
+const now=new Date(),todayISO=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');$('sportAnchor').value=todayISO;$('healthDate').value=todayISO;sportReset();sportRender();
+
+</script>
+</body>
+</html>
